@@ -11,5 +11,6 @@ data class NextMove(
     val by: Color,
     val previousMoveBy: Color,
     val previousMoveFrom: Int,
-    val previousMoveTo: Int
+    val previousMoveTo: Int,
+    val oppositeKingInCheckIndex: Int
 ): SenderBaseEvent

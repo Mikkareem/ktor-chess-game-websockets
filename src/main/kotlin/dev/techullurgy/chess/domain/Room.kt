@@ -88,22 +88,22 @@ class Room(
             to = data.destinationIndex
         )
         broadcast(moveDone)
-        // TODO("Check for KING CHECKED/CHECKMATE and notify appropriate")
+
         val oppositeColor = if(game.currentPlayerColor == Color.White) Color.Black else Color.White
         if(game.checkForOppositeKingCheckMate(oppositeColor)) {
-
+            val gameOver = GameOver(winner = game.currentPlayerColor)
+            broadcast(gameOver)
+            return
         }
         val kingCheckPosition = game.checkForOppositeKingInCheck(oppositeColor)
-        if(kingCheckPosition != -1) {
-
-        }
 
         game.changeTurnAndReset()
         val nextMove = NextMove(
             by = game.currentPlayerColor,
             previousMoveBy = moveDone.by,
             previousMoveFrom = moveDone.from,
-            previousMoveTo = moveDone.to
+            previousMoveTo = moveDone.to,
+            oppositeKingInCheckIndex = kingCheckPosition
         )
         broadcast(nextMove)
         runTimer()
