@@ -1,12 +1,13 @@
 package dev.techullurgy.chess.domain
 
+import io.ktor.server.websocket.DefaultWebSocketServerSession
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class GameServer {
-    private val rooms = ConcurrentHashMap<String, Room>().apply {
-        put("3rec", Room("3rec", "test room", "room desc", "Tester"))
-    }
+    private val userSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>()
+
+    private val rooms = ConcurrentHashMap<String, Room>()
 
     fun createRoom(model: RoomModel): RoomModel {
         val roomId = UUID.randomUUID().toString()
@@ -16,23 +17,18 @@ class GameServer {
         return room.toRoomModel()
     }
 
-    suspend fun joinRoom(player: Player, roomId: String): Room? {
-        val room = rooms[roomId] ?: return null
-        room.addPlayer(player)
-        return room
+    fun createSessionForClientId(clientId: String, session: DefaultWebSocketServerSession) {
+        userSessions[clientId] = session
     }
 
-    suspend fun disconnect(clientId: String): Boolean {
-        val room = getRoomForClientId(clientId) ?: return false
-        val player = room.getAssignedPlayers().find { player -> player.clientId == clientId } ?: return false
-        room.removePlayer(player)
-        return true
+    fun disconnect(clientId: String) {
+        getRoomsForClientId(clientId).forEach { it.removePlayer(clientId) }
     }
 
-    fun getRoomForClientId(clientId: String): Room? {
-        val room = rooms.values.find { room -> room.getAssignedPlayers().firstOrNull { it.clientId == clientId } != null }
-        return room
+    fun getRoomsForClientId(clientId: String): List<Room> {
+        return rooms.values.filter { room -> room.getAssignedPlayers().firstOrNull { it.clientId == clientId } != null }
     }
 
     internal fun getRoomById(roomId: String): Room? = rooms[roomId]
+    internal fun getSessionForClientId(clientId: String): DefaultWebSocketServerSession? = userSessions[clientId]
 }

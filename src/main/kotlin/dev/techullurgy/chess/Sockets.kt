@@ -1,7 +1,6 @@
 package dev.techullurgy.chess
 
 import dev.techullurgy.chess.domain.GameServer
-import dev.techullurgy.chess.domain.Player
 import dev.techullurgy.chess.domain.decodeBaseModel
 import dev.techullurgy.chess.domain.getType
 import dev.techullurgy.chess.events.*
@@ -26,21 +25,12 @@ fun Application.configureSockets() {
         route("/join/ws") {
             standardWebsocket { socket, clientId, payload ->
                 when(payload) {
-                    is JoinRoomHandshake -> {
-                        val newPlayer = Player(
-                            name = payload.username,
-                            socket = socket,
-                            clientId = clientId
-                        )
-                        gameServer.joinRoom(newPlayer, payload.roomId)
-                    }
-
-                    is DestinationSelected -> {
+                    is PieceMove -> {
                         val room = gameServer.getRoomForClientId(clientId) ?: return@standardWebsocket
                         room.cellDestinationSelectedForMove(payload)
                     }
                     Disconnected -> TODO()
-                    is MoveSelection -> {
+                    is CellSelection -> {
                         val room = gameServer.getRoomForClientId(clientId) ?: return@standardWebsocket
                         room.cellSelectedForMove(payload)
                     }
@@ -70,15 +60,15 @@ fun Route.standardWebsocket(
         }
 
         try {
+            gameServer.createSessionForClientId(session.clientId, this)
             for(frame in incoming) {
                 if(frame is Frame.Text) {
                     val message = frame.readText()
                     val messageType = message.getType()
 
                     val payload = when(messageType) {
-                        BaseEventConstants.TYPE_JOIN_ROOM_HANDSHAKE -> decodeBaseModel<JoinRoomHandshake>(message)
-                        BaseEventConstants.TYPE_SELECTION_FOR_MOVE_DONE -> decodeBaseModel<MoveSelection>(message)
-                        BaseEventConstants.TYPE_PIECE_DESTINATION_SELECTION_DONE -> decodeBaseModel<DestinationSelected>(message)
+                        BaseEventConstants.TYPE_SELECTION_FOR_MOVE_DONE -> decodeBaseModel<CellSelection>(message)
+                        BaseEventConstants.TYPE_PIECE_DESTINATION_SELECTION_DONE -> decodeBaseModel<PieceMove>(message)
                         BaseEventConstants.TYPE_RESET_SELECTION -> decodeBaseModel<ResetSelection>(message)
                         BaseEventConstants.TYPE_DISCONNECT -> decodeBaseModel<Disconnected>(message)
                         else -> TODO()

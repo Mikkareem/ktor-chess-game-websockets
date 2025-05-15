@@ -5,8 +5,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(BaseEventConstants.TYPE_ELAPSED_TIME)
-data class ElapsedTime(
+@SerialName(BaseEventConstants.TYPE_TIMER_UPDATE)
+data class TimerUpdate(
     val whiteTime: Long,
     val blackTime: Long,
 ): SenderBaseEvent

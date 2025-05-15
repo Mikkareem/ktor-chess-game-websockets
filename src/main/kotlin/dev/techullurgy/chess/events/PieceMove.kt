@@ -6,8 +6,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(BaseEventConstants.TYPE_PIECE_DESTINATION_SELECTION_DONE)
-data class DestinationSelected(
+@SerialName(BaseEventConstants.TYPE_PIECE_MOVE)
+data class PieceMove(
     val color: Color,
-    val destinationIndex: Int
+    val from: Int,
+    val to: Int
 ): ReceiverBaseEvent

@@ -6,8 +6,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(BaseEventConstants.TYPE_SELECTION_FOR_MOVE_DONE)
-data class MoveSelection(
-    val color: Color,
-    val selectedIndex: Int
-): ReceiverBaseEvent
+@SerialName(BaseEventConstants.TYPE_GAME_UPDATE)
+data class GameUpdate(
+    val board: String,
+    val currentTurn: Color,
+    val lastMove: String,
+    val cutPieces: String? = null,
+    val kingInCheckIndex: Int? = null
+): SenderBaseEvent
