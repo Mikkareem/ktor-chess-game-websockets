@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName(BaseEventConstants.TYPE_SELECTION_RESULT)
 data class SelectionResult(
+    val roomId: String,
     val availableIndices: List<Int>,
     val selectedIndex: Int
 ): SenderBaseEvent

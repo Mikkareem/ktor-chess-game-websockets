@@ -5,6 +5,7 @@ import dev.techullurgy.chess.domain.Player
 import dev.techullurgy.chess.domain.RoomModel
 import dev.techullurgy.chess.domain.toRoomModel
 import dev.techullurgy.chess.requests.RoomJoinRequest
+import dev.techullurgy.chess.requests.RoomLeaveRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -21,6 +22,7 @@ fun Application.configureRouting() {
 
         post("/room/{roomId}/join") {
             val roomId = call.parameters["roomId"]!!
+            val clientId = call.parameters["client_id"]!!
             val room = gameServer.getRoomById(roomId)!!
 
             val assignedPlayers = room.getAssignedPlayers()
@@ -43,7 +45,7 @@ fun Application.configureRouting() {
                 Player(
                     name = joinRequest.username,
                     colorAssigned = assignableColor ?: joinRequest.color,
-                    clientId = joinRequest.clientId,
+                    clientId = clientId,
                     roomId = roomId,
                 )
             )
@@ -55,7 +57,9 @@ fun Application.configureRouting() {
             val roomId = call.parameters["roomId"]!!
             val room = gameServer.getRoomById(roomId)!!
 
-            room.removePlayer(Player())
+            val request = call.receive<RoomLeaveRequest>()
+
+            room.removePlayer(request.clientId)
         }
 
         get("/room/{roomId}") {
@@ -67,6 +71,20 @@ fun Application.configureRouting() {
             } ?: let {
                 call.respond(HttpStatusCode.NotFound)
             }
+        }
+
+        get("/rooms/{clientId}") {
+            val clientId = call.parameters["clientId"]!!
+            val associatedRooms = gameServer.getRoomsForClientId(clientId).map { it.toRoomModel() }
+
+            call.respond(HttpStatusCode.OK, associatedRooms)
+        }
+
+        post("room/{roomId}/start") {
+            val roomId = call.parameters["roomId"]!!
+            val room = gameServer.getRoomById(roomId)!!
+
+            room.startGame()
         }
     }
 }

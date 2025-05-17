@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName(BaseEventConstants.TYPE_GAME_LOADING)
-data object GameLoading: SenderBaseEvent
+data class GameLoading(
+    val roomId: String
+): SenderBaseEvent

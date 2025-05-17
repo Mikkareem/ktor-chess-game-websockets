@@ -1,15 +1,12 @@
 package dev.techullurgy.chess.events.serializers
 
-import dev.techullurgy.chess.events.ColorAssigned
 import dev.techullurgy.chess.events.PieceMove
 import dev.techullurgy.chess.events.Disconnected
 import dev.techullurgy.chess.events.TimerUpdate
 import dev.techullurgy.chess.events.GameLoading
-import dev.techullurgy.chess.events.GameOver
-import dev.techullurgy.chess.events.GameStarted
-import dev.techullurgy.chess.events.MoveDone
 import dev.techullurgy.chess.events.CellSelection
-import dev.techullurgy.chess.events.NextMove
+import dev.techullurgy.chess.events.EnterRoomHandshake
+import dev.techullurgy.chess.events.GameUpdate
 import dev.techullurgy.chess.events.ReceiverBaseEvent
 import dev.techullurgy.chess.events.ResetSelection
 import dev.techullurgy.chess.events.ResetSelectionDone
@@ -20,7 +17,7 @@ import kotlinx.serialization.modules.SerializersModule
 
 val receiverBaseEventJson = Json {
     serializersModule = SerializersModule {
-        polymorphic(ReceiverBaseEvent::class, JoinRoomHandshake::class, JoinRoomHandshake.serializer())
+        polymorphic(ReceiverBaseEvent::class, EnterRoomHandshake::class, EnterRoomHandshake.serializer())
         polymorphic(ReceiverBaseEvent::class, CellSelection::class, CellSelection.serializer())
         polymorphic(ReceiverBaseEvent::class, PieceMove::class, PieceMove.serializer())
         polymorphic(ReceiverBaseEvent::class, ResetSelection::class, ResetSelection.serializer())
@@ -30,13 +27,9 @@ val receiverBaseEventJson = Json {
 
 val senderBaseEventJson = Json {
     serializersModule = SerializersModule {
-        polymorphic(SenderBaseEvent::class, MoveDone::class, MoveDone.serializer())
-        polymorphic(SenderBaseEvent::class, ColorAssigned::class, ColorAssigned.serializer())
+        polymorphic(SenderBaseEvent::class, GameUpdate::class, GameUpdate.serializer())
         polymorphic(SenderBaseEvent::class, TimerUpdate::class, TimerUpdate.serializer())
         polymorphic(SenderBaseEvent::class, GameLoading::class, GameLoading.serializer())
-        polymorphic(SenderBaseEvent::class, GameOver::class, GameOver.serializer())
-        polymorphic(SenderBaseEvent::class, GameStarted::class, GameStarted.serializer())
-        polymorphic(SenderBaseEvent::class, NextMove::class, NextMove.serializer())
         polymorphic(SenderBaseEvent::class, SelectionResult::class, SelectionResult.serializer())
         polymorphic(SenderBaseEvent::class, ResetSelectionDone::class, ResetSelectionDone.serializer())
     }

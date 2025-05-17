@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName(BaseEventConstants.TYPE_DISCONNECT)
-data object Disconnected: ReceiverBaseEvent
+data class Disconnected(
+    val roomId: String,
+): ReceiverBaseEvent

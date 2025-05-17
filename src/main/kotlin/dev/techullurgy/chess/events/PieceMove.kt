@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName(BaseEventConstants.TYPE_PIECE_MOVE)
 data class PieceMove(
+    val roomId: String,
     val color: Color,
     val from: Int,
     val to: Int

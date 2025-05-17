@@ -5,7 +5,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class GameServer {
-    private val userSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>()
+    private val userSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession?>()
 
     private val rooms = ConcurrentHashMap<String, Room>()
 
@@ -13,7 +13,6 @@ class GameServer {
         val roomId = UUID.randomUUID().toString()
         val room = Room(roomId, model.name, model.description, model.createdBy)
         rooms.put(roomId, room)
-        println("New room Created: Id=${roomId}, Total Rooms=${rooms.size}")
         return room.toRoomModel()
     }
 
@@ -23,6 +22,7 @@ class GameServer {
 
     fun disconnect(clientId: String) {
         getRoomsForClientId(clientId).forEach { it.removePlayer(clientId) }
+        userSessions[clientId] = null
     }
 
     fun getRoomsForClientId(clientId: String): List<Room> {

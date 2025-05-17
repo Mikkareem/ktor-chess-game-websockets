@@ -25,18 +25,22 @@ fun Application.configureSockets() {
         route("/join/ws") {
             standardWebsocket { socket, clientId, payload ->
                 when(payload) {
-                    is PieceMove -> {
-                        val room = gameServer.getRoomForClientId(clientId) ?: return@standardWebsocket
-                        room.cellDestinationSelectedForMove(payload)
+                    is EnterRoomHandshake -> {
+                        val room = gameServer.getRoomById(roomId = payload.roomId) ?: return@standardWebsocket
+                        room.playerEntered(clientId)
                     }
-                    Disconnected -> TODO()
+                    is PieceMove -> {
+                        val room = gameServer.getRoomById(roomId = payload.roomId) ?: return@standardWebsocket
+                        room.movePiece(payload)
+                    }
+                    is Disconnected -> TODO()
                     is CellSelection -> {
-                        val room = gameServer.getRoomForClientId(clientId) ?: return@standardWebsocket
+                        val room = gameServer.getRoomById(roomId = payload.roomId) ?: return@standardWebsocket
                         room.cellSelectedForMove(payload)
                     }
 
-                    ResetSelection -> {
-                        val room = gameServer.getRoomForClientId(clientId) ?: return@standardWebsocket
+                    is ResetSelection -> {
+                        val room = gameServer.getRoomById(roomId = payload.roomId) ?: return@standardWebsocket
                         room.resetSelection()
                     }
                 }
@@ -67,8 +71,9 @@ fun Route.standardWebsocket(
                     val messageType = message.getType()
 
                     val payload = when(messageType) {
-                        BaseEventConstants.TYPE_SELECTION_FOR_MOVE_DONE -> decodeBaseModel<CellSelection>(message)
-                        BaseEventConstants.TYPE_PIECE_DESTINATION_SELECTION_DONE -> decodeBaseModel<PieceMove>(message)
+                        BaseEventConstants.TYPE_ENTER_ROOM_HANDSHAKE -> decodeBaseModel<EnterRoomHandshake>(message)
+                        BaseEventConstants.TYPE_CELL_SELECTION -> decodeBaseModel<CellSelection>(message)
+                        BaseEventConstants.TYPE_PIECE_MOVE -> decodeBaseModel<PieceMove>(message)
                         BaseEventConstants.TYPE_RESET_SELECTION -> decodeBaseModel<ResetSelection>(message)
                         BaseEventConstants.TYPE_DISCONNECT -> decodeBaseModel<Disconnected>(message)
                         else -> TODO()

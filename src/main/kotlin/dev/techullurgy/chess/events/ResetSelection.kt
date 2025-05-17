@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName(BaseEventConstants.TYPE_RESET_SELECTION)
-data object ResetSelection: ReceiverBaseEvent
+data class ResetSelection(
+    val roomId: String,
+): ReceiverBaseEvent

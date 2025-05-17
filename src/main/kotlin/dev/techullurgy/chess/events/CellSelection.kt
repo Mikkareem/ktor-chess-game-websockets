@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName(BaseEventConstants.TYPE_CELL_SELECTION)
 data class CellSelection(
+    val roomId: String,
     val color: Color,
     val selectedIndex: Int
 ): ReceiverBaseEvent

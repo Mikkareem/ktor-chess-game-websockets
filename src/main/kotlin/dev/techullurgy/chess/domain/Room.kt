@@ -20,15 +20,13 @@ class Room(
 
     private var timerJob: Job? = null
 
-    fun getAssignedPlayers(): Set<Player> = players.values.toSet()
-
     fun addPlayer(player: Player) {
         if (players.size in 0 until 2) {
             players.put(player.colorAssigned, player)
             if(player.colorAssigned == Color.White) {
-                whitePlayerSend(GameLoading)
+                whitePlayerSend(GameLoading(roomId = id))
             } else {
-                blackPlayerSend(GameLoading)
+                blackPlayerSend(GameLoading(roomId = id))
             }
         }
     }
@@ -39,29 +37,20 @@ class Room(
         }
     }
 
-    fun runTimer() {
-        timerJob?.cancel()
-        timerJob = coroutineScope.launch {
-            val activePlayer = players.values.find { it.colorAssigned == game.currentPlayerColor } ?: return@launch
-            val inactivePlayer = players.values.find { it.colorAssigned != game.currentPlayerColor } ?: return@launch
+    fun startGame() {
+        observeBoardStateAndBroadcast()
+        runTimer()
+    }
 
-            while(isActive) {
-                activePlayer.timeLeft -= 1.seconds
-                val timerUpdate = TimerUpdate(
-                    whiteTime = if(activePlayer.colorAssigned == Color.White) activePlayer.timeLeft.inWholeSeconds else inactivePlayer.timeLeft.inWholeSeconds,
-                    blackTime = if(activePlayer.colorAssigned == Color.Black) activePlayer.timeLeft.inWholeSeconds else inactivePlayer.timeLeft.inWholeSeconds
-                )
-                broadcast(timerUpdate)
-                delay(1000)
-            }
-        }
+    fun playerEntered(clientId: String) {
+        sendCurrentBoardStateToPlayer(clientId)
     }
 
     fun cellSelectedForMove(data: CellSelection) {
         if(data.color != game.currentPlayerColor) return
 
         val availableIndices = game.cellSelectedForMove(data.selectedIndex)
-        sendToCurrentPlayer(SelectionResult(availableIndices, data.selectedIndex))
+        sendToCurrentPlayer(SelectionResult(roomId = id, availableIndices = availableIndices, selectedIndex = data.selectedIndex))
     }
 
     fun movePiece(data: PieceMove) {
@@ -76,19 +65,38 @@ class Room(
 
     fun resetSelection() {
         game.resetSelection()
-        sendToCurrentPlayer(ResetSelectionDone)
+        sendToCurrentPlayer(ResetSelectionDone(roomId = id))
+    }
+
+    fun getAssignedPlayers(): Set<Player> = players.values.toSet()
+
+    private fun runTimer() {
+        timerJob?.cancel()
+        timerJob = coroutineScope.launch {
+            val activePlayer = players.values.find { it.colorAssigned == game.currentPlayerColor } ?: return@launch
+            val inactivePlayer = players.values.find { it.colorAssigned != game.currentPlayerColor } ?: return@launch
+
+            while(isActive) {
+                activePlayer.timeLeft -= 1.seconds
+                val timerUpdate = TimerUpdate(
+                    roomId = id,
+                    whiteTime = if(activePlayer.colorAssigned == Color.White) activePlayer.timeLeft.inWholeSeconds else inactivePlayer.timeLeft.inWholeSeconds,
+                    blackTime = if(activePlayer.colorAssigned == Color.Black) activePlayer.timeLeft.inWholeSeconds else inactivePlayer.timeLeft.inWholeSeconds
+                )
+                broadcast(timerUpdate)
+                delay(1000)
+            }
+        }
+    }
+
+    private fun sendCurrentBoardStateToPlayer(clientId: String) {
+        getAssignedPlayers().find { it.clientId == clientId }?.sendEvent(game.boardState.value.toGameUpdate())
     }
 
     private fun observeBoardStateAndBroadcast() {
         coroutineScope.launch {
             game.boardState.collectLatest {
-                val gameUpdate = GameUpdate(
-                    board = it.board,
-                    currentTurn = it.currentTurn,
-                    cutPieces = it.cutPieces,
-                    lastMove = ""
-                )
-                broadcast(gameUpdate)
+                broadcast(it.toGameUpdate())
             }
         }
     }

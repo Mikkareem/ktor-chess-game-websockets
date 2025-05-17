@@ -131,8 +131,8 @@ data class EncodedBoardState(
 )
 
 private fun BoardState.encode() = EncodedBoardState(
-    board = board.parseString(),
-    cutPieces = cutPieces.parseString(),
+    board = board.parsedAsBoardString(),
+    cutPieces = cutPieces.parsedAsCutPiecesString(),
     currentTurn = currentTurn,
     kingInCheckIndex = kingInCheckIndex,
     gameOver = gameOver,
@@ -171,7 +171,7 @@ private fun initialBoard(): Board = List(8 * 8) {
     }
 }
 
-private fun Board.parseString() = joinToString("***") { piece ->
+private fun Board.parsedAsBoardString() = joinToString("***") { piece ->
     when (piece) {
         is Bishop -> if (piece.color == Color.Black) "BB" else "WB"
         is King -> if (piece.color == Color.Black) "BK" else "WK"
@@ -183,4 +183,4 @@ private fun Board.parseString() = joinToString("***") { piece ->
     }
 }
 
-private fun CutPieces.parseString() = ""
+private fun CutPieces.parsedAsCutPiecesString() = joinToString("***")
